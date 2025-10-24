@@ -33,7 +33,7 @@ builder.Services.AddCors(options => {
 // we dont use add transiengt or addscoped
 //adding custom http client for usersMicroserviceclient
 builder.Services.AddHttpClient<UsersMicroserviceClient>(client => {
-    //new Uri("http://localhost:9090");
+    //new Uri("http://localhost:9090"); 9090 is the exposed port in docker file for user microservice
     //builder.Configuration to read from config
     //$ for string interpolation
     client.BaseAddress = new Uri($"http://{builder.Configuration["UsersMicroserviceName"]}:{builder.Configuration["UsersMicroservicePort"]}");
@@ -41,6 +41,12 @@ builder.Services.AddHttpClient<UsersMicroserviceClient>(client => {
 // two ways to read environment variable Environment.GetEnvironment, or reda from configuration
 //in builder object we have configuration property, we can read config through this , read specific value assuming this environment variable is provided
 //at run time builder.Configuration["UsersMicroserviceName"] will be replavced nby local host, aand builder.Configuration["UsersMicroservicePort"] by 9090
+
+builder.Services.AddHttpClient<ProductsMicroserviceClient>(client =>
+{
+    client.BaseAddress = new Uri($"http://{builder.Configuration["ProductsMicroserviceName"]}:{builder.Configuration["ProductsMicroservicePort"]}");
+});
+
 var app = builder.Build();
 
 app.UseExceptionHandlingMiddleware();

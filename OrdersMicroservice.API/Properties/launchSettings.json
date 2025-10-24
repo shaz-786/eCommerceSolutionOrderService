@@ -9,7 +9,9 @@
         "MONGODB_PORT": "27017",
         "MONGODB_DATABASE": "OrdersDatabase",
         "UsersMicroserviceName": "localhost",
-        "UsersMicroservicePort": "9090"
+        "UsersMicroservicePort": "9090",
+        "ProductsMicroserviceName": "localhost",
+        "ProductsMicroservicePort": "8080"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5027",
@@ -22,9 +24,11 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "MONGODB_HOST": "localhost",
         "MONGODB_PORT": "27017",
-        "MONGODB_DATABASE":"OrdersDatabase",
+        "MONGODB_DATABASE": "OrdersDatabase",
         "UsersMicroserviceName": "localhost",
-        "UsersMicroservicePort": "9090"
+        "UsersMicroservicePort": "9090",
+        "ProductsMicroserviceName": "localhost",
+        "ProductsMicroservicePort": "8080"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7155;http://localhost:5027",
@@ -34,7 +38,14 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "MONGODB_HOST": "localhost",
+        "MONGODB_PORT": "27017",
+        "MONGODB_DATABASE": "OrdersDatabase",
+        "UsersMicroserviceName": "localhost",
+        "UsersMicroservicePort": "9090",
+        "ProductsMicroserviceName": "localhost",
+        "ProductsMicroservicePort": "8080"
       }
     },
     "Container (Dockerfile)": {
@@ -43,7 +54,14 @@
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
       "environmentVariables": {
         "ASPNETCORE_HTTPS_PORTS": "8081",
-        "ASPNETCORE_HTTP_PORTS": "8080"
+        "ASPNETCORE_HTTP_PORTS": "8080",
+        "MONGODB_HOST": "localhost",
+        "MONGODB_PORT": "27017",
+        "MONGODB_DATABASE": "OrdersDatabase",
+        "UsersMicroserviceName": "localhost",
+        "UsersMicroservicePort": "9090",
+        "ProductsMicroserviceName": "localhost",
+        "ProductsMicroservicePort": "8080"
       },
       "publishAllPorts": true,
       "useSSL": true

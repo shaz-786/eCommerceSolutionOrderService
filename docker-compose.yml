@@ -1,0 +1,131 @@
+# sometimes all comntainers need to be restarted after killing, unknown errors, use build=>clean solution
+services:
+  ordersmicroservice.api:
+    image: ordersmicroserviceapi
+    build:
+      context: .
+      # only ordersmicroservice image should be created every timein vs jusing build tag , the other two mcservice are already created using docker command and are on local machine
+      dockerfile: OrdersMicroservice.API/Dockerfile
+    environment:
+        # no need to give port no or environment here for orders because of yml override file
+     # - instaed of loaclhost fro mongodb_host, use the mongo db contaoner name
+     - MONGODB_HOST=mongodb-container
+     - MONGODB_PORT=27017
+     - MONGODB_DATABASE=OrdersDatabase
+     - UsersMicroserviceName=users-microservice
+     # should be container port not 5000 which is host port
+     - UsersMicroservicePort=9090 
+     - ProductsMicroserviceName=products-microservice
+     - ProductsMicroservicePort=8080 
+    # - host port to container port
+    ports:
+     - "7000:8080"
+    networks:
+     - orders-mongodb-network
+     - ecommerce-network
+    depends_on:
+    # mongodb shoukd start first 
+     - mongodb-container
+    
+ 
+  mongodb-container:
+    image: mongo:latest
+    ports:
+     - "27017:27017"
+    volumes:
+     # ..refers to parent folder of current folder 
+     # host path will be mapped to docker init path conatinaer path
+     - ../../mongodb-init:/docker-entrypoint-initdb.d
+    networks:
+     - orders-mongodb-network
+     
+  products-microservice:
+  # will pick existing one from docker desktop - local machine
+   image: products-microservice:latest
+   environment:
+   # internal port of kestrel server inside container
+    - ASPNETCORE_HTTP_PORTS=8080
+    - ASPNETCORE_ENVIRONMENT=Development
+    # - environment vars specified in products service
+    - MYSQL_HOST=mysql-container
+    # -no need to change port number here, as it is port number on conatainer not host
+    - MYSQL_PORT=3306
+    - MYSQL_DATABASE=ecommerceproductsdatabase
+    - MYSQL_USER=root
+    - MYSQL_PASSWORD=admin
+    # - 6000 (our choice) port is local port muset be mapped to ASPNETCORE_HTTP_PORTS=8080 container port
+   ports:
+    - "6000:8080"
+   networks:
+    - products-mysql-network
+    - ecommerce-network
+   depends_on:
+    - mysql-container
+    
+  
+
+  mysql-container:
+  # from docker hub official
+   image: mysql:8.0
+   # mysql container takes password env variable, should match with the above password
+   # no need to psecify port number, it gets from microservice container
+   environment:
+    - MYSQL_ROOT_PASSWORD=admin
+    # - normally it si 3306:3306, but since i have mysql already installed at port 3306, there will be conflict, so choose any other like 3307
+    # - no need to change port number in products mservice container, as it is port number on conatainer not host
+   ports:
+    - "3307:3306"
+   volumes:
+    - ../../mysql-init:/docker-entrypoint-initdb.d
+   networks:
+    - products-mysql-network
+
+
+  users-microservice:
+   image: users-microservice:latest
+   environment:
+        # these port nos 8080 are visible within the same container but not on the other containers or the host, all containersneed to start at same port
+    - ASPNETCORE_HTTP_PORTS=8080
+    - ASPNETCORE_HTTP_ENVIRONMENT=Development
+    - POSTGRES_HOST=postgres-container
+    - POSTGRES_PORT=5432
+    - POSTGRES_DATABASE=eCommerceUsers
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=admin
+   ports:
+   # originally 5000:8080, but because we had made changes in appconfig in users ms, to make it work with product, so it is pointingto 9090
+   # we can remove that kestrel code from spp config, but will need to rebuild image
+   # or just make the change herae to point to 9090
+    - "5000:9090"
+   networks:
+    - users-postgres-network
+    # - in order fro different microservices to communicate, must have same netwrok, so create one without dbs, ensuring security for different dbs
+    - ecommerce-network
+   depends_on:
+    - postgres-container
+
+
+  postgres-container:
+   image: postgres:13
+   environment:
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=admin
+    - POSTGRES_DB=eCommerceUsers
+   ports:
+    - "5433:5432"
+   volumes:
+    - ../../postgres-init:/docker-entrypoint-initdb.d
+   networks:
+    - users-postgres-network
+
+
+networks:
+ orders-mongodb-network:
+  driver: bridge
+  # must create a seperate network for products database and make sure the respective microservice is in the same
+ products-mysql-network:
+  driver: bridge
+ users-postgres-network:
+  driver: bridge
+ ecommerce-network:
+  driver: bridge 

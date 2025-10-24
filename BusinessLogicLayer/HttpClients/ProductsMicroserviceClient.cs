@@ -3,19 +3,19 @@ using System.Net.Http.Json;
 
 namespace eCommerce.OrdersMicroservice.BusinessLogicLayer.HttpClients;
 
-public class UsersMicroserviceClient //not necessary for an interface
+public class ProductsMicroserviceClient //not necessary for an interface
 {
     private readonly HttpClient _httpClient;
 
-    public UsersMicroserviceClient(HttpClient httpClient)
+    public ProductsMicroserviceClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
 
-    public async Task<UserDTO?> GetUserByUserID(Guid userID)
+    public async Task<ProductDTO?> GetProductByProductID(Guid productID)
     {
-        HttpResponseMessage response = await _httpClient.GetAsync($"/api/users/{userID}");
+        HttpResponseMessage response = await _httpClient.GetAsync($"/api/products/search/product-id/{productID}");
         // ig getting internal server error , then that means it sis inside microservice
         //in intermediate window , type new StreamReader(response.Content.ReadAsStream()).ReadToEnd() to know the intrenal error message, after debug point on next line
         if (!response.IsSuccessStatusCode)// anything starting not with 2 is error response
@@ -35,13 +35,13 @@ public class UsersMicroserviceClient //not necessary for an interface
         }
 
 
-        UserDTO? user = await response.Content.ReadFromJsonAsync<UserDTO>(); // reads response as an object of userDto
+        ProductDTO? product = await response.Content.ReadFromJsonAsync<ProductDTO>(); // reads response as an object of userDto
 
-        if (user == null)
+        if (product == null)
         {
-            throw new ArgumentException("Invalid User ID");
+            throw new ArgumentException("Invalid Product ID");
         }
 
-        return user;
+        return product;
     }
 }

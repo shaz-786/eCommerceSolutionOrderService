@@ -20,7 +20,8 @@ public class OrdersService : IOrdersService
     private readonly IMapper _mapper;
     private IOrdersRepository _ordersRepository;
     private UsersMicroserviceClient _usersMicroserviceClient;
-    public OrdersService(IOrdersRepository ordersRepository, IMapper mapper, IValidator<OrderAddRequest> orderAddRequestValidator, IValidator<OrderItemAddRequest> orderItemAddRequestValidator, IValidator<OrderUpdateRequest> orderUpdateRequestValidator, IValidator<OrderItemUpdateRequest> orderItemUpdateRequestValidator, UsersMicroserviceClient usersMicroserviceClient)
+    private ProductsMicroserviceClient _productsMicroserviceClient;
+    public OrdersService(IOrdersRepository ordersRepository, IMapper mapper, IValidator<OrderAddRequest> orderAddRequestValidator, IValidator<OrderItemAddRequest> orderItemAddRequestValidator, IValidator<OrderUpdateRequest> orderUpdateRequestValidator, IValidator<OrderItemUpdateRequest> orderItemUpdateRequestValidator, UsersMicroserviceClient usersMicroserviceClient, ProductsMicroserviceClient productsMicroserviceClient)
     {
         _orderAddRequestValidator = orderAddRequestValidator;
         _orderItemAddRequestValidator = orderItemAddRequestValidator;
@@ -29,6 +30,7 @@ public class OrdersService : IOrdersService
         _mapper = mapper;
         _ordersRepository = ordersRepository;
         _usersMicroserviceClient = usersMicroserviceClient;
+        _productsMicroserviceClient = productsMicroserviceClient;
     }
 
 
@@ -58,6 +60,13 @@ public class OrdersService : IOrdersService
             {// need to vaidate items seperately using its validator
                 string errors = string.Join(", ", orderItemAddRequestValidationResult.Errors.Select(temp => temp.ErrorMessage));
                 throw new ArgumentException(errors);
+            }
+
+            //TO DO: Add logic for checking if ProductID exists in Products microservice
+            ProductDTO? product = await _productsMicroserviceClient.GetProductByProductID(orderItemAddRequest.ProductID);
+            if (product == null)
+            {
+                throw new ArgumentException("Invalid Product ID");
             }
         }
 
@@ -135,6 +144,29 @@ public class OrdersService : IOrdersService
 
 
         IEnumerable<OrderResponse?> orderResponses = _mapper.Map<IEnumerable<OrderResponse>>(orders);
+
+
+        //TO DO: Load ProductName and Category in each OrderItem
+        foreach (OrderResponse? orderResponse in orderResponses)
+        {
+            if (orderResponse == null)
+            {
+                continue;
+            }
+
+            foreach (OrderItemResponse orderItemResponse in orderResponse.OrderItems)
+            {
+                ProductDTO? productDTO = await _productsMicroserviceClient.GetProductByProductID(orderItemResponse.ProductID);
+
+                if (productDTO == null)
+                    continue;
+                //ProductDTO src, orderItemResponse dest
+                //another way to write = optional - also it doesnt cretae new destination
+                _mapper.Map<ProductDTO, OrderItemResponse>(productDTO, orderItemResponse);
+            }
+        }
+
+        
         return orderResponses.ToList();
     }
     public async Task<OrderResponse?> UpdateOrder(OrderUpdateRequest orderUpdateRequest)
@@ -165,6 +197,14 @@ public class OrdersService : IOrdersService
                 string errors = string.Join(", ", orderItemUpdateRequestValidationResult.Errors.Select(temp => temp.ErrorMessage));
                 throw new ArgumentException(errors);
                 // no need for  nameof as errors is string
+            }
+
+            //in a loop making multiole api request results in performance issues
+            //TO DO: Add logic for checking if ProductID exists in Products microservice
+            ProductDTO? product = await _productsMicroserviceClient.GetProductByProductID(orderItemUpdateRequest.ProductID);
+            if (product == null)
+            {
+                throw new ArgumentException("Invalid Product ID");
             }
         }
 

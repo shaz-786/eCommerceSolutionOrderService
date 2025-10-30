@@ -7,6 +7,7 @@ services:
       # only ordersmicroservice image should be created every timein vs jusing build tag , the other two mcservice are already created using docker command and are on local machine
       dockerfile: OrdersMicroservice.API/Dockerfile
     environment:
+     
         # no need to give port no or environment here for orders because of yml override file
      # - instaed of loaclhost fro mongodb_host, use the mongo db contaoner name
      - MONGODB_HOST=mongodb-container
@@ -55,7 +56,7 @@ services:
     - MYSQL_PASSWORD=admin
     # - 6000 (our choice) port is local port muset be mapped to ASPNETCORE_HTTP_PORTS=8080 container port
    ports:
-    - "6000:8080"
+    - "6001:8080"
    networks:
     - products-mysql-network
     - ecommerce-network

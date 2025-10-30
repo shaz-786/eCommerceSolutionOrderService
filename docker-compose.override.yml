@@ -1,6 +1,8 @@
 services:
   ordersmicroservice.api:
     environment:
+       # //tells the .NET runtime to only listen on HTTP, not HTTPS, as getting corrs problim while using angular app to access ordersmervice
+      - ASPNETCORE_URLS=http://+:8080 
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
